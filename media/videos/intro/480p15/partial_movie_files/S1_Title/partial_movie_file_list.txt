@@ -1,0 +1,9 @@
+# This file is used internally by FFMPEG.
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/3723630160_3536430287_223132457.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_3774578863_1674140306.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_2808097524_3104141335.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_2852912078_466149030.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_2374874258_295277919.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_1978022439_139501791.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_3484913905_3345312195.mp4'
+file 'file:/home/nvhungus/Documents/College/Nam_3/HK2/T3_ML/Lab_1/media/videos/intro/480p15/partial_movie_files/S1_Title/2126653828_2270354804_554207670.mp4'

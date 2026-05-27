@@ -1,0 +1,92 @@
+\documentclass[oneside,a4paper,13pt]{extarticle}
+
+% Khai báo các gói thư viện toán học chuẩn
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsfonts}
+\usepackage[T5]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[vietnamese]{babel}
+
+\begin{document}
+
+\section*{DANH SÁCH CÔNG THỨC TOÁN HỌC CỐT LÕI (DÙNG CHO MANIM)}
+
+% ========================================== %
+\subsection*{1. Phần mở đầu: Động lực học bất ổn định}
+% ========================================== %
+
+\begin{itemize}
+    \item \textbf{Định nghĩa độ cong Sharpness (Trị riêng lớn nhất của Hessian):}
+    \begin{equation}
+        \text{Sharpness} := \lambda_{\max}(\nabla^2 L(\theta))
+    \end{equation}
+
+    \item \textbf{Giới hạn điều kiện của Bổ đề giảm (Descent Lemma):}
+    \begin{equation}
+        \eta < \frac{2}{\sup\|\nabla^2 L(\cdot)\|}
+    \end{equation}
+
+    \item \textbf{Trạng thái cân bằng tại Bờ vực ổn định (Edge of Stability):}
+    \begin{equation}
+        \lambda_{\max}(\nabla^2 L(\theta)) = \frac{2}{\eta}
+    \end{equation}
+\end{itemize}
+
+\newpage
+
+% ========================================== %
+\subsection*{2. Phần 1: Tối ưu hóa (Optimization)}
+% ========================================== %
+
+\begin{itemize}
+    \item \textbf{Bước cập nhật rời rạc của thuật toán Gradient Descent:}
+    \begin{equation}
+        \theta_{+} = \theta - \eta\nabla L(\theta)
+    \end{equation}
+
+    \item \textbf{Đánh giá phần dư Taylor (Taylor Remainder Inequality):}
+    \begin{equation}
+        L(\theta_{+}) \le L(\theta) - \eta\|\nabla L(\theta)\|^2 \left(1 - \frac{\eta}{2}\|\nabla^2 L(\nu)\|\right)
+    \end{equation}
+
+    \item \textbf{Tốc độ hội tụ trên hàm lồi (Convex Convergence Rate):}
+    \begin{equation}
+        O\left(\frac{1}{\epsilon}\right)
+    \end{equation}
+
+    \item \textbf{Tốc độ hội tụ trên hàm lồi mạnh (Strongly Convex Convergence Rate):}
+    \begin{equation}
+        O\left(\log\left(\frac{1}{\epsilon}\right)\right)
+    \end{equation}
+
+    \item \textbf{Điều kiện kích hoạt bước nhảy lớn trong cấu trúc thung lũng (Valley Regime):}
+    \begin{equation}
+        \eta > \frac{2}{\lambda_{\max}}
+    \end{equation}
+\end{itemize}
+
+\newpage
+
+% ========================================== %
+\subsection*{3. Phần 2: Tổng quát hóa (Generalization)}
+% ========================================== %
+
+\begin{itemize}
+    \item \textbf{Phân rã ma trận cấu trúc thấp chiều (Matrix Sensing Solution):}
+    \begin{equation}
+        X = LR^\top
+    \end{equation}
+
+    \item \textbf{Số đo độ phẳng cực tiểu dựa trên Vết của ma trận Hessian (Trace of Hessian):}
+    \begin{equation}
+        \text{tr}(\nabla^2 \mathcal{L}(L, R))
+    \end{equation}
+
+    \item \textbf{Ràng buộc chuẩn biến phân toàn phần (Total Variation Constraint) trên không gian hàm số:}
+    \begin{equation}
+        \int |f''(x)| g(x) dx \le \frac{2}{\eta}
+    \end{equation}
+\end{itemize}
+
+\end{document}
