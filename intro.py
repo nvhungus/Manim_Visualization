@@ -79,7 +79,72 @@ class S1_Title(Scene):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
-#  SCENE 2 – LOSS SPIKES (hook chính)
+#  SCENE 2 – MỤC TIÊU VIDEO  (slide 2)
+# ═══════════════════════════════════════════════════════════════════════════════
+class S2_VideoObjectives(Scene):
+    def construct(self):
+        title = Text("Mục tiêu của video",
+                     font_size=40, color=C_WHITE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 4.5, RIGHT * 4.5,
+                     color=C_GOLD, stroke_width=2.5).next_to(title, DOWN, buff=0.1)
+
+        sub = Text("Sau video này, bạn sẽ nắm được:",
+                   font_size=22, color=C_GOLD)
+        sub.next_to(uline, DOWN, buff=0.35)
+
+        obj_data = [
+            ("①",
+             "Loss spike & training instability đến từ đâu",
+             "→ và tại sao chúng không hẳn là lỗi",
+             C_BLUE),
+            ("②",
+             "Ba chế độ stepsize: infinitesimal, small, large",
+             "→ hành vi và cách tư duy khác nhau",
+             C_GREEN),
+            ("③",
+             "Large stepsize tăng tốc optimization thế nào",
+             "→ cơ chế 2 pha stable / unstable",
+             C_GOLD),
+            ("④",
+             "Large stepsize giảm overfitting thế nào",
+             "→ implicit bias, flat minima, generalization bounds",
+             C_PURPLE),
+        ]
+
+        cards = VGroup()
+        for icon, head, detail, col in obj_data:
+            num    = Text(icon,   font_size=34, color=col,   weight=BOLD)
+            head_t = Text(head,   font_size=20, color=C_WHITE)
+            det_t  = Text(detail, font_size=17, color=col)
+            head_t.next_to(num, RIGHT, buff=0.22)
+            det_t.next_to(head_t, DOWN, buff=0.05, aligned_edge=LEFT)
+            cards.add(VGroup(num, head_t, det_t))
+
+        cards.arrange(DOWN, aligned_edge=LEFT, buff=0.40)
+        cards.next_to(sub, DOWN, buff=0.32)
+        cards.shift(LEFT * 0.2)
+
+        hook = Text(
+            '"Tại sao loss đang giảm bỗng nhiên nhảy vọt?"',
+            font_size=21, color=C_GRAY,
+        )
+        hook.to_edge(DOWN, buff=0.42)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.play(FadeIn(sub, shift=DOWN * 0.1), run_time=0.6)
+        self.wait(0.2)
+        for card in cards:
+            self.play(FadeIn(card, shift=RIGHT * 0.2), run_time=0.6)
+            self.wait(0.12)
+        self.wait(0.5)
+        self.play(FadeIn(hook, shift=UP * 0.1), run_time=0.7)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  SCENE 3 – LOSS SPIKES (hook chính)
 # ═══════════════════════════════════════════════════════════════════════════════
 class S2_LossSpikes(Scene):
     def construct(self):
@@ -383,6 +448,145 @@ class S4_GDDemo(Scene):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  SCENE 4b – BA CHẾ ĐỘ STEPSIZE + GRADIENT FLOW  (slides 4–5)
+# ═══════════════════════════════════════════════════════════════════════════════
+class S4b_GradientFlow(Scene):
+    def construct(self):
+        # ── PART A: Bảng 3 chế độ stepsize (slide 4) ──────────────────────────
+        title_a = Text("Ba chế độ stepsize", font_size=36,
+                       color=C_WHITE, weight=BOLD)
+        title_a.to_edge(UP, buff=0.42)
+        uline_a = Line(LEFT * 4.2, RIGHT * 4.2,
+                       color=C_BLUE, stroke_width=2).next_to(title_a, DOWN, buff=0.1)
+
+        regime_data = [
+            ("Infinitesimal\nη → 0",
+             "Gần gradient flow\nLoss luôn giảm liên tục",
+             "Rất ổn định\nnhưng chậm",
+             C_BLUE),
+            ("Small\nη < 2/‖∇²L‖",
+             "Loss giảm đơn điệu\nđảm bảo ở mỗi bước",
+             "Nền tảng lý thuyết\noptimization cổ điển",
+             C_GREEN),
+            ("Large\nη > 2/‖∇²L‖",
+             "Loss có thể tăng\ndao động, spike",
+             "Không ổn định cục bộ\nnhưng tạo implicit bias",
+             C_GOLD),
+        ]
+
+        boxes = VGroup()
+        for label, behavior, mindset, col in regime_data:
+            box  = RoundedRectangle(width=3.8, height=2.85, corner_radius=0.18,
+                                    color=col, fill_opacity=0.08, stroke_width=2)
+            lbl  = Text(label,    font_size=19, color=col, weight=BOLD)
+            sep  = Line(LEFT * 1.7, RIGHT * 1.7,
+                        color=col, stroke_width=0.9, stroke_opacity=0.5)
+            beh  = Text(behavior, font_size=15, color=C_WHITE)
+            mind = Text(mindset,  font_size=14, color=col)
+
+            lbl.next_to(box.get_top(), DOWN, buff=0.22)
+            sep.next_to(lbl, DOWN, buff=0.14)
+            beh.next_to(sep, DOWN, buff=0.16)
+            mind.next_to(beh, DOWN, buff=0.12)
+            boxes.add(VGroup(box, lbl, sep, beh, mind))
+
+        boxes.arrange(RIGHT, buff=0.35)
+        boxes.next_to(uline_a, DOWN, buff=0.35)
+
+        cond_eq = MathTex(
+            r"\eta < \frac{2}{\sup\|\nabla^2 L(\cdot)\|}",
+            r"\;\Longleftrightarrow\;",
+            r"\text{vùng \textbf{small} stepsize}",
+            font_size=26, color=C_WHITE,
+        )
+        cond_eq[0].set_color(C_GREEN)
+        cond_eq[2].set_color(C_GREEN)
+        cond_eq.next_to(boxes, DOWN, buff=0.42)
+
+        self.play(Write(title_a), Create(uline_a), run_time=0.9)
+        for box in boxes:
+            self.play(FadeIn(box, shift=UP * 0.15), run_time=0.65)
+            self.wait(0.08)
+        self.play(Write(cond_eq), run_time=0.9)
+        self.wait(1.8)
+
+        # ── Transition ─────────────────────────────────────────────────────────
+        self.play(FadeOut(VGroup(title_a, uline_a, boxes, cond_eq)), run_time=0.7)
+
+        # ── PART B: Gradient flow (slide 5) ────────────────────────────────────
+        title_b = Text("Gradient Flow: khi bước đi cực nhỏ",
+                       font_size=32, color=C_WHITE, weight=BOLD)
+        title_b.to_edge(UP, buff=0.42)
+        uline_b = Line(LEFT * 4.8, RIGHT * 4.8,
+                       color=C_BLUE, stroke_width=2).next_to(title_b, DOWN, buff=0.1)
+
+        eq1 = MathTex(
+            r"d\theta = -\nabla L(\theta)\,dt",
+            font_size=36, color=C_BLUE,
+        )
+        eq2a = MathTex(
+            r"dL(\theta) = \nabla L(\theta)^\top d\theta",
+            font_size=30, color=C_WHITE,
+        )
+        eq2b = MathTex(
+            r"= -\|\nabla L(\theta)\|^2\,dt \;\le\; 0",
+            font_size=30, color=C_GREEN,
+        )
+        eq2b.next_to(eq2a, DOWN, buff=0.12, aligned_edge=LEFT)
+        eqs = VGroup(eq1, VGroup(eq2a, eq2b)).arrange(DOWN, buff=0.4)
+        eqs.shift(LEFT * 2.5 + DOWN * 0.15)
+
+        bullet_data = [
+            ("Loss luôn giảm trong thời gian liên tục", C_GREEN),
+            ("Momentum & SGD ≈ ODE/SDE khi η → 0",     C_BLUE),
+            ("Adam/adaptivity: continuous limit phức tạp hơn", C_GRAY),
+        ]
+        bullets = VGroup()
+        for txt, col in bullet_data:
+            dot = Text("▸", font_size=16, color=col)
+            t   = Text(txt, font_size=18, color=col)
+            t.next_to(dot, RIGHT, buff=0.15)
+            bullets.add(VGroup(dot, t))
+        bullets.arrange(DOWN, aligned_edge=LEFT, buff=0.26)
+        bullets.next_to(eqs, DOWN, buff=0.42, aligned_edge=LEFT)
+
+        # ── Smooth loss curve (right side) ─────────────────────────────────────
+        ax_b = Axes(
+            x_range=[0, 5, 1], y_range=[-0.1, 2.5, 1],
+            x_length=3.8, y_length=3.2,
+            axis_config={"color": C_GRAY, "stroke_width": 1.2,
+                         "include_tip": True},
+        ).shift(RIGHT * 3.4 + DOWN * 0.1)
+
+        stable_curve = ax_b.plot(
+            lambda t: 2.2 * np.exp(-0.7 * t) + 0.08,
+            x_range=[0.01, 4.8, 0.05],
+            color=C_GREEN, stroke_width=2.8,
+        )
+        x_lbl_b = Text("t", font_size=18, color=C_GRAY)
+        x_lbl_b.next_to(ax_b.x_axis, DOWN, buff=0.22)
+        y_lbl_b = Text("L", font_size=18, color=C_GRAY)
+        y_lbl_b.next_to(ax_b.y_axis, LEFT, buff=0.22)
+        stable_txt = Text("stable", font_size=17, color=C_GREEN, weight=BOLD)
+        stable_txt.move_to(ax_b.c2p(3.0, 0.7))
+
+        self.play(Write(title_b), Create(uline_b), run_time=0.9)
+        self.wait(0.2)
+        self.play(Write(eq1), run_time=0.9)
+        self.play(Write(eq2a), run_time=0.7)
+        self.play(Write(eq2b), run_time=0.7)
+        self.wait(0.3)
+        for b in bullets:
+            self.play(FadeIn(b, shift=RIGHT * 0.15), run_time=0.5)
+            self.wait(0.08)
+        self.play(Create(ax_b), FadeIn(x_lbl_b), FadeIn(y_lbl_b), run_time=0.8)
+        self.play(Create(stable_curve, rate_func=linear),
+                  FadeIn(stable_txt), run_time=1.5)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  SCENE 5 – ĐIỀU KIỆN ỔN ĐỊNH: DESCENT LEMMA & EDGE OF STABILITY
 # ═══════════════════════════════════════════════════════════════════════════════
 class S5_StabilityCondition(Scene):
@@ -489,7 +693,56 @@ class S5_StabilityCondition(Scene):
         self.play(Write(eos_formula), run_time=1.1)
         self.play(Create(box2), run_time=0.5)
         self.play(FadeIn(note, shift=UP * 0.1), run_time=0.6)
-        self.wait(2.2)
+        self.wait(1.4)
+
+        # ── Progressive sharpening plot (slide 8) ─────────────────────────────
+        self.play(FadeOut(bar_group), run_time=0.6)
+
+        ax_ps = Axes(
+            x_range=[0, 100, 20], y_range=[0, 2.8, 0.5],
+            x_length=5.2, y_length=3.0,
+            axis_config={"color": C_GRAY, "stroke_width": 1.2,
+                         "include_tip": True},
+        ).shift(LEFT * 3.5 + DOWN * 0.5)
+
+        def sharpness_model(t):
+            thr = 2.0
+            if t < 65:
+                return thr * (t / 65) ** 0.55
+            osc = 0.12 * np.sin(0.45 * t) * np.exp(-0.012 * (t - 65))
+            return thr + osc * thr
+
+        sharp_curve = ax_ps.plot(
+            sharpness_model, x_range=[0, 98, 1],
+            color=C_BLUE, stroke_width=2.5,
+        )
+        thresh_line = DashedLine(
+            ax_ps.c2p(0, 2.0), ax_ps.c2p(100, 2.0),
+            color=C_RED, stroke_width=1.8, dash_length=0.12,
+        )
+        thresh_lbl = MathTex(r"\tfrac{2}{\eta}", font_size=22, color=C_RED)
+        thresh_lbl.next_to(ax_ps.c2p(100, 2.0), RIGHT, buff=0.12)
+
+        prog_lbl = Text("progressive\nsharpening", font_size=14, color=C_BLUE)
+        prog_lbl.next_to(ax_ps.c2p(28, sharpness_model(28)), UP, buff=0.14)
+
+        eos_lbl = Text("edge of\nstability", font_size=14, color=C_PURPLE)
+        eos_lbl.next_to(ax_ps.c2p(82, 2.15), UP, buff=0.12)
+
+        x_lbl_ps = Text("step", font_size=15, color=C_GRAY)
+        x_lbl_ps.next_to(ax_ps.x_axis, DOWN, buff=0.22)
+        y_lbl_ps = MathTex(r"\lambda_{\max}(\nabla^2 L)", font_size=15, color=C_GRAY)
+        y_lbl_ps.rotate(PI / 2).next_to(ax_ps.y_axis, LEFT, buff=0.22)
+        ps_title = Text("Progressive Sharpening", font_size=17,
+                        color=C_BLUE, weight=BOLD)
+        ps_title.next_to(ax_ps, UP, buff=0.16)
+
+        self.play(Create(ax_ps), FadeIn(x_lbl_ps), FadeIn(y_lbl_ps),
+                  FadeIn(ps_title), run_time=0.9)
+        self.play(Create(sharp_curve, rate_func=linear), run_time=2.8)
+        self.play(Create(thresh_line), FadeIn(thresh_lbl), run_time=0.7)
+        self.play(FadeIn(prog_lbl), FadeIn(eos_lbl), run_time=0.7)
+        self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
 

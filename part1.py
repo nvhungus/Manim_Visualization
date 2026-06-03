@@ -557,6 +557,83 @@ class P6_MentalModel(Scene):
         focus_note = Text("Our case study", font_size=19, color=C_GOLD)
         focus_note.next_to(focus, DOWN, buff=0.15)
         self.play(Create(focus), FadeIn(focus_note), run_time=0.7)
+        self.wait(1.5)
+
+        # ── Valley traversal: small vs large step (slide 9 visual note) ────────
+        self.play(
+            FadeOut(spec_arr, spec_lbl, model_groups, focus, focus_note),
+            run_time=0.7,
+        )
+
+        valley_hd = Text("Valley traversal: small vs large stepsize",
+                         font_size=25, color=C_WHITE, weight=BOLD)
+        valley_hd.next_to(uline, DOWN, buff=0.38)
+        self.play(FadeIn(valley_hd, shift=DOWN * 0.1), run_time=0.6)
+
+        # ── Two mini axes (cross-section of a loss valley) ─────────────────────
+        ax_s = Axes(
+            x_range=[-3, 3, 1], y_range=[-0.2, 7, 2],
+            x_length=4.8, y_length=3.2,
+            axis_config={"color": C_GRAY, "stroke_width": 1,
+                         "include_tip": False},
+        ).shift(LEFT * 3.2 + DOWN * 1.0)
+
+        ax_l = Axes(
+            x_range=[-3, 3, 1], y_range=[-0.2, 7, 2],
+            x_length=4.8, y_length=3.2,
+            axis_config={"color": C_GRAY, "stroke_width": 1,
+                         "include_tip": False},
+        ).shift(RIGHT * 3.2 + DOWN * 1.0)
+
+        par_s = ax_s.plot(lambda x: x ** 2, x_range=[-2.6, 2.6],
+                           color=C_BLUE, stroke_width=2.2)
+        par_l = ax_l.plot(lambda x: x ** 2, x_range=[-2.6, 2.6],
+                           color=C_BLUE, stroke_width=2.2)
+
+        # Small eta = 0.18: monotone descent, many steps
+        def gd_path(x0, eta, tol=0.10):
+            xs = [x0]
+            x = x0
+            for _ in range(40):
+                x = x - eta * 2 * x
+                xs.append(x)
+                if abs(x) < tol:
+                    break
+            return xs
+
+        path_s = gd_path(2.5, 0.18)   # ~12 steps, monotone
+        path_l = gd_path(2.5, 0.75)   # ~6 steps, oscillates (bounces)
+
+        pts_s = [ax_s.c2p(xi, xi ** 2) for xi in path_s]
+        pts_l = [ax_l.c2p(xi, xi ** 2) for xi in path_l]
+
+        traj_s = VMobject(color=C_GREEN, stroke_width=2.5)
+        traj_s.set_points_as_corners(pts_s)
+        traj_l = VMobject(color=C_GOLD,  stroke_width=2.5)
+        traj_l.set_points_as_corners(pts_l)
+
+        dots_s = VGroup(*[Dot(p, radius=0.08, color=C_GREEN) for p in pts_s])
+        dots_l = VGroup(*[Dot(p, radius=0.08, color=C_GOLD)  for p in pts_l])
+
+        lbl_s_h = Text(f"Small η  (~{len(path_s)-1} bước)",
+                       font_size=17, color=C_GREEN, weight=BOLD)
+        lbl_l_h = Text(f"Large η  (~{len(path_l)-1} bước)",
+                       font_size=17, color=C_GOLD,  weight=BOLD)
+        lbl_s_h.next_to(ax_s, UP, buff=0.14)
+        lbl_l_h.next_to(ax_l, UP, buff=0.14)
+
+        desc_s = Text("trượt dọc một bên — chậm", font_size=14, color=C_GREEN)
+        desc_l = Text("nảy qua lại — nhanh hơn, valley giữ quỹ đạo",
+                      font_size=14, color=C_GOLD)
+        desc_s.next_to(ax_s, DOWN, buff=0.18)
+        desc_l.next_to(ax_l, DOWN, buff=0.18)
+
+        self.play(Create(ax_s), Create(ax_l), run_time=0.8)
+        self.play(Create(par_s), Create(par_l),
+                  FadeIn(lbl_s_h), FadeIn(lbl_l_h), run_time=0.7)
+        self.play(Create(traj_s, rate_func=linear), FadeIn(dots_s), run_time=2.2)
+        self.play(Create(traj_l, rate_func=linear), FadeIn(dots_l), run_time=1.5)
+        self.play(FadeIn(desc_s), FadeIn(desc_l), run_time=0.6)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -749,6 +826,61 @@ class P8_TwoPhases(Scene):
             FadeIn(unstable_lbl), FadeIn(stable_lbl),
             run_time=0.9,
         )
+        self.wait(1.2)
+
+        # ── Phase timeline (slide 10) ──────────────────────────────────────────
+        self.play(
+            FadeOut(ax, x_tick_labs, y_tick_labs, x_axis_lbl, y_axis_lbl,
+                    legend, curves, phase_line, unstable_lbl, stable_lbl),
+            run_time=0.7,
+        )
+
+        tl_arrow = Arrow(LEFT * 5.8, RIGHT * 5.8,
+                         color=C_GRAY, stroke_width=2, buff=0)
+        tl_arrow.move_to(DOWN * 0.2)
+
+        phase_specs = [
+            (LEFT * 4.5,  "stable",   C_GREEN,  "loss ↓ sau mỗi bước"),
+            (LEFT * 1.5,  "unstable", C_ORANGE, "loss dao động — không phải thất bại!"),
+            (RIGHT * 1.5, "stable",   C_GREEN,  "hội tụ trở lại"),
+            (RIGHT * 4.5, "edge",     C_RED,    r"λ_max ≈ 2/η"),
+        ]
+        seg_cols = [C_GREEN, C_ORANGE, C_GREEN]
+
+        dots  = VGroup()
+        lbls  = VGroup()
+        descs = VGroup()
+        segs  = VGroup()
+
+        for i, (pos, name, col, desc) in enumerate(phase_specs):
+            dot = Dot(pos + DOWN * 0.2, color=col, radius=0.14)
+            lbl = Text(name, font_size=20, color=col, weight=BOLD)
+            lbl.next_to(dot, UP, buff=0.22)
+            desc_t = Text(desc, font_size=14, color=col)
+            desc_t.next_to(lbl, UP, buff=0.10)
+            dots.add(dot); lbls.add(lbl); descs.add(desc_t)
+            if i < len(seg_cols):
+                p1 = pos + DOWN * 0.2
+                p2 = phase_specs[i + 1][0] + DOWN * 0.2
+                segs.add(Line(p1, p2, color=seg_cols[i], stroke_width=5))
+
+        # Edge annotation below
+        eos_note = MathTex(
+            r"\lambda_{\max}(\nabla^2 L(\theta)) \approx \tfrac{2}{\eta}",
+            font_size=22, color=C_RED,
+        )
+        eos_note.next_to(dots[-1], DOWN, buff=0.55)
+
+        self.play(FadeIn(tl_arrow), run_time=0.5)
+        for i in range(len(phase_specs)):
+            anims = [FadeIn(dots[i]), FadeIn(lbls[i])]
+            if i < len(segs):
+                anims.append(Create(segs[i]))
+            self.play(*anims, run_time=0.55)
+            self.wait(0.08)
+
+        self.play(FadeIn(descs, shift=UP * 0.1), run_time=0.8)
+        self.play(Write(eos_note), run_time=0.7)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -1079,3 +1211,85 @@ class P11_L2Reg(Scene):
             run_time=0.9,
         )
         self.play(GrowArrow(reg_arrow), FadeIn(reg_arrow_lbl), run_time=0.7)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  P12 – TÓM TẮT OPTIMIZATION  (slide 12)
+# ═══════════════════════════════════════════════════════════════════════════════
+class P12_OptSummary(Scene):
+    def construct(self):
+        title = Text("Tóm tắt — Optimization",
+                     font_size=40, color=C_GOLD, weight=BOLD)
+        title.to_edge(UP, buff=0.45)
+        uline = Line(LEFT * 4.0, RIGHT * 4.0,
+                     color=C_GOLD, stroke_width=2.5).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        points = [
+            (
+                "1.",
+                "Small stepsize cho lý thuyết đẹp",
+                "Descent Lemma  ·  Convergence rates  ·  Gradient flow",
+                C_BLUE,
+            ),
+            (
+                "2.",
+                "Deep learning thực tế chạy ở vùng large stepsize",
+                "Học nhanh hơn — nhưng mất đảm bảo giảm đơn điệu",
+                C_GREEN,
+            ),
+            (
+                "3.",
+                "Large stepsize gây instability — nhưng cũng tạo implicit bias",
+                "GD bị đẩy ra khỏi nghiệm sắc nhọn → chọn nghiệm phẳng hơn",
+                C_GOLD,
+            ),
+            (
+                "4.",
+                "Câu hỏi mở",
+                "Thiết kế scheduler, warmup, normalization, preconditioning\n"
+                "sao cho tận dụng instability mà không divergence",
+                C_PURPLE,
+            ),
+        ]
+
+        cards = VGroup()
+        for num_s, head, detail, col in points:
+            num_t  = Text(num_s,  font_size=32, color=col, weight=BOLD)
+            head_t = Text(head,   font_size=22, color=C_WHITE, weight=BOLD)
+            det_t  = Text(detail, font_size=17, color=C_GRAY)
+            head_t.next_to(num_t, RIGHT, buff=0.22)
+            det_t.next_to(head_t, DOWN, buff=0.07, aligned_edge=LEFT)
+            cards.add(VGroup(num_t, head_t, det_t))
+
+        cards.arrange(DOWN, aligned_edge=LEFT, buff=0.48)
+        cards.next_to(uline, DOWN, buff=0.50)
+        cards.shift(LEFT * 0.3)
+
+        for card in cards:
+            self.play(FadeIn(card, shift=RIGHT * 0.2), run_time=0.7)
+            self.wait(0.18)
+
+        # Highlight implicit bias point
+        bias_box = SurroundingRectangle(
+            cards[2], color=C_GOLD, stroke_width=2,
+            buff=0.18, corner_radius=0.1
+        )
+        self.wait(0.5)
+        self.play(Create(bias_box), run_time=0.7)
+
+        final = Text(
+            "Large stepsize không chỉ là 'học nhanh' — nó định hình nghiệm GD tìm được!",
+            font_size=20, color=C_GOLD,
+        )
+        final.to_edge(DOWN, buff=0.42)
+        final_box = SurroundingRectangle(
+            final, color=C_GOLD, stroke_width=1.5,
+            buff=0.15, corner_radius=0.1
+        )
+        self.play(FadeIn(final, shift=UP * 0.1),
+                  Create(final_box), run_time=0.8)
+        self.wait(3.0)
+        self.play(FadeOut(*self.mobjects))

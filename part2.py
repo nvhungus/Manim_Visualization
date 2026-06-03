@@ -427,6 +427,143 @@ class G4_OverparamDoubleDescent(Scene):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  G4b – CASE STUDY: MODEL FIT ĐƯỢC CẢ NHÃN NGẪU NHIÊN  (slide 16)
+# ═══════════════════════════════════════════════════════════════════════════════
+class G4b_ShuffledLabels(Scene):
+    def construct(self):
+        title = Text(
+            "Neural Nets fit được cả nhãn ngẫu nhiên",
+            font_size=30, color=C_WHITE, weight=BOLD,
+        )
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.0, RIGHT * 5.0,
+                     color=C_ORANGE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        # ── Pixel grids: natural vs shuffled labels ────────────────────────────
+        np.random.seed(7)
+        grid_n = 5
+        cell   = 0.40
+
+        def make_grid(label_fn, center):
+            grp = VGroup()
+            for i in range(grid_n):
+                for j in range(grid_n):
+                    sq = Square(
+                        side_length=cell * 0.84,
+                        fill_color=label_fn(i, j),
+                        fill_opacity=0.88,
+                        stroke_width=0.5, stroke_color=C_GRAY,
+                    )
+                    sq.move_to(np.array([
+                        (j - grid_n / 2 + 0.5) * cell,
+                        -(i - grid_n / 2 + 0.5) * cell, 0
+                    ]))
+                    grp.add(sq)
+            grp.move_to(center)
+            return grp
+
+        def natural(i, j):   # diagonal split: top-left blue, bottom-right orange
+            return C_BLUE if i + j < grid_n else C_ORANGE
+
+        perm = np.random.permutation(grid_n * grid_n)
+        def shuffled(i, j):  # random
+            return C_BLUE if perm[i * grid_n + j] % 2 == 0 else C_ORANGE
+
+        g_nat = make_grid(natural,  LEFT * 4.2 + DOWN * 0.5)
+        g_shf = make_grid(shuffled, LEFT * 1.5 + DOWN * 0.5)
+
+        lbl_nat = Text("Nhãn tự nhiên", font_size=16, color=C_BLUE)
+        lbl_shf = Text("Nhãn ngẫu nhiên\n(shuffled)", font_size=16, color=C_ORANGE)
+        lbl_nat.next_to(g_nat, DOWN, buff=0.18)
+        lbl_shf.next_to(g_shf, DOWN, buff=0.18)
+
+        fit_badge = Text(
+            "✓  Train loss ≈ 0  trong cả hai trường hợp!",
+            font_size=19, color=C_RED, weight=BOLD,
+        )
+        fit_badge.next_to(lbl_shf, DOWN, buff=0.28)
+
+        self.play(FadeIn(g_nat), FadeIn(lbl_nat), run_time=0.8)
+        self.play(FadeIn(g_shf), FadeIn(lbl_shf), run_time=0.8)
+        self.wait(0.3)
+        self.play(FadeIn(fit_badge, shift=UP * 0.1), run_time=0.7)
+        self.wait(0.5)
+
+        # ── Key insight ────────────────────────────────────────────────────────
+        ins1 = Text("→  Vấn đề không phải capacity của model",
+                    font_size=19, color=C_WHITE)
+        ins2 = Text("→  Mà là optimizer chọn nghiệm NÀO",
+                    font_size=19, color=C_GOLD, weight=BOLD)
+        ins1.next_to(fit_badge, DOWN, buff=0.25)
+        ins2.next_to(ins1,      DOWN, buff=0.15)
+        self.play(FadeIn(ins1, shift=RIGHT * 0.15), run_time=0.6)
+        self.play(FadeIn(ins2, shift=RIGHT * 0.15), run_time=0.6)
+        self.wait(0.5)
+
+        # ── Right side: 3 solutions + implicit filter ──────────────────────────
+        ax_f = Axes(
+            x_range=[-0.5, 0.5, 0.25], y_range=[-1.0, 1.8, 0.5],
+            x_length=3.5, y_length=3.8,
+            axis_config={"color": C_GRAY, "stroke_width": 1,
+                         "include_tip": False},
+        ).shift(RIGHT * 3.5 + DOWN * 0.3)
+
+        np.random.seed(13)
+        xd = np.sort(np.random.uniform(-0.45, 0.45, 10))
+        yd = 0.8 * np.sin(3 * xd) + np.random.randn(10) * 0.25
+
+        c_smooth = ax_f.plot(lambda x: 0.8*np.sin(3*x),
+                              x_range=[-0.48, 0.48, 0.01],
+                              color=C_GREEN,  stroke_width=2.8)
+        c_medium = ax_f.plot(lambda x: 0.8*np.sin(3*x) + 0.25*np.sin(12*x),
+                              x_range=[-0.48, 0.48, 0.01],
+                              color=C_GOLD,   stroke_width=2.2)
+        c_sharp  = ax_f.plot(lambda x: 0.8*np.sin(3*x) + 0.55*np.sin(28*x),
+                              x_range=[-0.48, 0.48, 0.01],
+                              color=C_RED,    stroke_width=2.0)
+
+        data_dots = VGroup(*[
+            Dot(ax_f.c2p(xi, yi), radius=0.065,
+                color=C_WHITE, fill_opacity=0.85)
+            for xi, yi in zip(xd, yd)
+        ])
+
+        lbl_s = Text("smooth",  font_size=13, color=C_GREEN)
+        lbl_m = Text("wavy",    font_size=13, color=C_GOLD)
+        lbl_sh = Text("zigzag", font_size=13, color=C_RED)
+        lbl_s.next_to(ax_f.c2p(0.35,  0.5), RIGHT, buff=0.05)
+        lbl_m.next_to(ax_f.c2p(0.35,  0.9), RIGHT, buff=0.05)
+        lbl_sh.next_to(ax_f.c2p(0.35, 1.4), RIGHT, buff=0.05)
+
+        self.play(Create(ax_f), FadeIn(data_dots), run_time=0.7)
+        self.play(Create(c_sharp),  FadeIn(lbl_sh), run_time=0.6)
+        self.play(Create(c_medium), FadeIn(lbl_m),  run_time=0.6)
+        self.play(Create(c_smooth), FadeIn(lbl_s),  run_time=0.6)
+        self.wait(0.4)
+
+        # Filter: sharp solutions fade out
+        self.play(
+            c_sharp.animate.set_opacity(0.18),
+            c_medium.animate.set_opacity(0.25),
+            lbl_sh.animate.set_opacity(0.18),
+            lbl_m.animate.set_opacity(0.25),
+            run_time=0.9,
+        )
+
+        filter_note = Text(
+            "Large stepsize = implicit filter\nnghiệm sharp không ổn định → bị loại",
+            font_size=15, color=C_ORANGE,
+        )
+        filter_note.next_to(ax_f, DOWN, buff=0.22)
+        self.play(FadeIn(filter_note, shift=UP * 0.1), run_time=0.7)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  G5 – MATRIX SENSING: SETUP & FLATNESS MEASURE  (slides 24–26)
 # ═══════════════════════════════════════════════════════════════════════════════
 class G5_MatrixSensing(Scene):
@@ -791,6 +928,76 @@ class G8_TVConstraint(Scene):
                   Write(bound_eq), run_time=1.2)
         self.play(Create(bound_box), run_time=0.7)
         self.play(FadeIn(imply_note, shift=UP * 0.1), run_time=0.6)
+        self.wait(1.2)
+
+        # ── Zigzag → smooth animation (slide 14 visual note) ──────────────────
+        self.play(
+            FadeOut(tv_def_lbl, tv_def_eq, contain_lbl, contain_eq, c_val,
+                    bound_lbl, bound_eq, bound_box, imply_note),
+            run_time=0.7,
+        )
+
+        vis_sub = Text("Flatness → Độ mượt trong function space",
+                       font_size=26, color=C_ORANGE, weight=BOLD)
+        vis_sub.next_to(uline, DOWN, buff=0.38)
+        self.play(FadeIn(vis_sub, shift=DOWN * 0.1), run_time=0.6)
+
+        # Mini axes
+        ax_v = Axes(
+            x_range=[-0.6, 0.6, 0.3], y_range=[-1.2, 1.8, 0.5],
+            x_length=5.8, y_length=3.8,
+            axis_config={"color": C_GRAY, "stroke_width": 1.2,
+                         "include_tip": True},
+        ).shift(LEFT * 2.2 + DOWN * 0.5)
+
+        # Noisy data dots
+        np.random.seed(42)
+        xd = np.sort(np.random.uniform(-0.55, 0.55, 11))
+        yd = np.sin(3 * xd) + np.random.randn(11) * 0.38
+        data_dots = VGroup(*[
+            Dot(ax_v.c2p(xi, yi), radius=0.07,
+                color=C_WHITE, fill_opacity=0.85)
+            for xi, yi in zip(xd, yd)
+        ])
+
+        def zigzag_fn(x):
+            return np.sin(3*x) + 0.55*np.sin(18*x) + 0.38*np.sin(32*x)
+
+        def smooth_fn(x):
+            return np.sin(3*x)
+
+        c_zz = ax_v.plot(zigzag_fn, x_range=[-0.58, 0.58, 0.005],
+                          color=C_RED, stroke_width=2.5)
+        c_sm = ax_v.plot(smooth_fn, x_range=[-0.58, 0.58, 0.01],
+                          color=C_GREEN, stroke_width=2.8)
+
+        lbl_over = Text("overfit  (TV lớn)", font_size=15, color=C_RED)
+        lbl_smth = Text("smooth  (TV nhỏ)", font_size=15, color=C_GREEN)
+        lbl_over.next_to(ax_v, RIGHT, buff=0.2).shift(UP * 0.8)
+        lbl_smth.next_to(ax_v, RIGHT, buff=0.2).shift(UP * 0.1)
+
+        # TV formula on right
+        tv_eq_r = MathTex(
+            r"\int |f''(x)|\,g(x)\,dx \;\le\; \frac{2}{\eta}",
+            font_size=26, color=C_GOLD,
+        )
+        tv_eq_r.shift(RIGHT * 3.8 + DOWN * 1.0)
+        tv_box_r = SurroundingRectangle(
+            tv_eq_r, color=C_GOLD, stroke_width=2,
+            buff=0.20, corner_radius=0.1
+        )
+        fence_lbl = Text('"rào chắn" độ cong', font_size=16, color=C_GOLD)
+        fence_lbl.next_to(tv_box_r, DOWN, buff=0.2)
+
+        self.play(Create(ax_v), FadeIn(data_dots), run_time=0.8)
+        self.play(Create(c_zz), FadeIn(lbl_over), run_time=1.0)
+        self.wait(0.5)
+        # Zigzag → smooth transform
+        self.play(Transform(c_zz, c_sm),
+                  Transform(lbl_over, lbl_smth), run_time=1.8)
+        self.wait(0.3)
+        self.play(Write(tv_eq_r), Create(tv_box_r), run_time=1.0)
+        self.play(FadeIn(fence_lbl, shift=UP * 0.1), run_time=0.6)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -999,6 +1206,72 @@ class G10_OpenProblems(Scene):
             self.play(FadeIn(item, shift=RIGHT * 0.1), run_time=0.45)
             self.wait(0.08)
 
+        self.wait(1.2)
+
+        # ── Sơ đồ 4 mảnh: data/loss/architecture/optimizer (slide 17) ──────────
+        self.play(
+            FadeOut(log_title, log_insuf, log_fix, log_box,
+                    ns_title, ns_items, open_title, open_items),
+            run_time=0.7,
+        )
+
+        puzzle_sub = Text(
+            "Large stepsize không hoạt động một mình",
+            font_size=25, color=C_WHITE, weight=BOLD,
+        )
+        puzzle_sub.next_to(uline, DOWN, buff=0.38)
+        self.play(FadeIn(puzzle_sub, shift=DOWN * 0.1), run_time=0.6)
+
+        # 4 pieces in 2×2 grid
+        piece_data = [
+            ("Data\ndistribution", C_BLUE,   LEFT * 2.8 + UP * 0.55),
+            ("Loss\nfunction",     C_GREEN,  RIGHT * 2.0 + UP * 0.55),
+            ("Architecture\n& no-bias, depth...", C_PURPLE, LEFT * 2.8 + DOWN * 1.55),
+            ("Optimizer\n(large LR)",             C_GOLD,   RIGHT * 2.0 + DOWN * 1.55),
+        ]
+
+        pieces = VGroup()
+        for label, col, pos in piece_data:
+            box = RoundedRectangle(
+                width=3.6, height=1.7, corner_radius=0.2,
+                color=col, fill_opacity=0.10, stroke_width=2,
+            )
+            txt = Text(label, font_size=19, color=col, weight=BOLD)
+            txt.move_to(box)
+            g = VGroup(box, txt)
+            g.move_to(pos)
+            pieces.add(g)
+
+        # Arrows connecting pieces to optimizer
+        arrows = VGroup(*[
+            Arrow(pieces[i].get_center(), pieces[3].get_center(),
+                  color=C_GRAY, stroke_width=1.5, buff=0.85,
+                  max_tip_length_to_length_ratio=0.12)
+            for i in range(3)
+        ])
+
+        # Highlight the optimizer piece
+        opt_ring = SurroundingRectangle(
+            pieces[3], color=C_GOLD, stroke_width=3,
+            buff=0.12, corner_radius=0.22
+        )
+
+        key_msg = Text(
+            '"Flatness hữu ích khi tương tác đúng với cấu trúc dữ liệu và model"',
+            font_size=18, color=C_GOLD,
+        )
+        key_msg.to_edge(DOWN, buff=0.42)
+        key_box = SurroundingRectangle(
+            key_msg, color=C_GOLD, stroke_width=1.5,
+            buff=0.14, corner_radius=0.1
+        )
+
+        for p in pieces[:3]:
+            self.play(FadeIn(p, shift=UP * 0.12), run_time=0.55)
+        self.play(FadeIn(pieces[3], shift=UP * 0.12), run_time=0.55)
+        self.play(Create(arrows), run_time=0.8)
+        self.play(Create(opt_ring), run_time=0.5)
+        self.play(FadeIn(key_msg), Create(key_box), run_time=0.8)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
