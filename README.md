@@ -2,8 +2,8 @@
 
 A Vietnamese-narrated [Manim](https://www.manim.community/) animation series that visualizes the
 **NeurIPS 2025 Tutorial "Theoretical Insights on Training Instability in Deep Learning"**
-(Jingfeng Wu, Yu-Xing Wang, Maryam Fazel). The animations accompany a Vietnamese-adapted
-slide deck and walk through the core ideas in two parts:
+(Jingfeng Wu, Yu-Xing Wang, Maryam Fazel). The animations accompany a slide deck used
+for a YouTube tutorial and walk through the core ideas in two parts:
 
 1. **Optimization** — why gradient descent with a *large* stepsize, beyond the classical
    stability threshold `η < 2/L`, can converge faster than classical theory predicts
@@ -19,7 +19,7 @@ slide deck and walk through the core ideas in two parts:
 ├── intro.py        # 8 scenes  — intro / motivation
 ├── part1.py        # 16 scenes — Part 1: Optimization
 ├── part2.py        # 16 scenes — Part 2: Generalization
-├── slides/         # Slide decks (reference + Vietnamese tutorial deck)
+├── slides/         # Slide decks (reference + YouTube tutorial deck)
 ├── docs/           # Supporting notes (core formulas reference)
 ├── media/videos/   # Rendered output (1080p60), organized by file/scene
 └── .vscode/        # Editor settings
@@ -116,8 +116,8 @@ delete `media/` and re-render at any time to regenerate them.
 
 ## Slides
 
-- `slides/vietnamese_tutorial_slides.pdf` — Vietnamese-adapted slide deck used alongside
-  this video series.
+- `slides/youtube_tutorial_slides.pdf` — slide deck used alongside this video series
+  on YouTube.
 - `slides/neurips2025_original_slides.pdf` — original NeurIPS 2025 tutorial slides
   (source material).
 
