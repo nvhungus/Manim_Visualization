@@ -18,6 +18,70 @@ config.background_color = BG
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  G0 – RECAP PART 1 → TRANSITION TO PART 2  (slide 15)
+# ═══════════════════════════════════════════════════════════════════════════════
+class G0_RecapPart1(Scene):
+    def construct(self):
+        title = Text("Recap: Part 1 — Rethinking Optimization",
+                     font_size=32, color=C_BLUE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.0, RIGHT * 5.0,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        intro = Text("What we learned in Part 1:", font_size=22, color=C_WHITE)
+        intro.next_to(uline, DOWN, buff=0.42)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.play(FadeIn(intro), run_time=0.5)
+        self.wait(0.2)
+
+        bullets = [
+            ("Large stepsize",
+             "→  faster convergence (beyond classical rates)", C_GOLD),
+            ("Unstable regime:",
+             'GD converges "arbitrarily fast"', C_ORANGE),
+            ("Edge-of-Stability:",
+             "sharpness ≈ 2/η during training", C_BLUE),
+            ("Large stepsize has",
+             "beneficial regularization effects", C_GREEN),
+        ]
+
+        bullet_grp = VGroup()
+        for prefix, suffix, col in bullets:
+            dash = Text("—", font_size=22, color=C_GRAY)
+            pre_t = Text(prefix, font_size=22, color=col, weight=BOLD)
+            suf_t = Text(suffix, font_size=22, color=C_WHITE)
+            pre_t.next_to(dash, RIGHT, buff=0.2)
+            suf_t.next_to(pre_t, RIGHT, buff=0.2)
+            bullet_grp.add(VGroup(dash, pre_t, suf_t))
+
+        bullet_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.35)
+        bullet_grp.next_to(intro, DOWN, buff=0.42)
+        bullet_grp.shift(LEFT * 0.5)
+
+        for b in bullet_grp:
+            self.play(FadeIn(b, shift=RIGHT * 0.15), run_time=0.6)
+            self.wait(0.12)
+
+        now_box = RoundedRectangle(
+            width=10.5, height=1.1, corner_radius=0.2,
+            color=C_GREEN, fill_opacity=0.10, stroke_width=2,
+        )
+        now_txt = Text(
+            "Now: How does large step size affect generalization in overparameterized models?",
+            font_size=20, color=C_GREEN, weight=BOLD,
+        )
+        now_txt.move_to(now_box)
+        now_grp = VGroup(now_box, now_txt)
+        now_grp.to_edge(DOWN, buff=0.55)
+
+        self.wait(0.4)
+        self.play(FadeIn(now_grp, shift=UP * 0.15), run_time=0.9)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  G1 – PART 2 OVERVIEW: 3 KEY QUESTIONS  (slides 1–6)
 # ═══════════════════════════════════════════════════════════════════════════════
 class G1_Part2Overview(Scene):
@@ -80,6 +144,202 @@ class G1_Part2Overview(Scene):
         )
         self.wait(0.4)
         self.play(Create(focus_box), run_time=0.6)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  G1b – INTERPOLATION & IMPLICIT BIAS OF LARGE STEPSIZE  (slide 18)
+# ═══════════════════════════════════════════════════════════════════════════════
+class G1b_ImplicitBias(Scene):
+    def construct(self):
+        title = Text("Interpolation & Implicit Bias of Large Stepsize",
+                     font_size=28, color=C_BLUE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.5, RIGHT * 5.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        premise = Text(
+            "Overparameterized models can interpolate — but only some solutions generalize.",
+            font_size=21, color=C_WHITE, weight=BOLD,
+        )
+        premise.next_to(uline, DOWN, buff=0.38)
+
+        insight_box = RoundedRectangle(
+            width=11.0, height=1.0, corner_radius=0.18,
+            color=C_GOLD, fill_opacity=0.09, stroke_width=2,
+        )
+        insight_txt = Text(
+            "Key Insight: Large stepsize acts as implicit regularizer "
+            "— biases GD toward flatter, simpler solutions.",
+            font_size=20, color=C_GOLD,
+        )
+        insight_txt.move_to(insight_box)
+        insight_grp = VGroup(insight_box, insight_txt)
+        insight_grp.next_to(premise, DOWN, buff=0.30)
+
+        self.play(FadeIn(premise, shift=DOWN * 0.1), run_time=0.7)
+        self.play(FadeIn(insight_grp, shift=DOWN * 0.1), run_time=0.7)
+        self.wait(0.3)
+
+        obs_title = Text(
+            "Observations (Kong & Tao 2020, Cohen et al. 2025):",
+            font_size=20, color=C_BLUE, weight=BOLD,
+        )
+        obs_title.next_to(insight_grp, DOWN, buff=0.40)
+
+        obs_items = [
+            "— Large η behaves differently from gradient flow",
+            "— Induces chaotic dynamics avoiding sharp minima",
+            "— Leads to flat, low-sharpness solutions",
+        ]
+        obs_grp = VGroup(*[Text(s, font_size=19, color=C_WHITE)
+                            for s in obs_items])
+        obs_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.22)
+        obs_grp.next_to(obs_title, DOWN, buff=0.22)
+        obs_grp.shift(RIGHT * 0.4)
+
+        obs_rect = SurroundingRectangle(
+            VGroup(obs_title, obs_grp), color=C_BLUE,
+            stroke_width=2, buff=0.28, corner_radius=0.15,
+        )
+
+        self.play(FadeIn(obs_title), Create(obs_rect), run_time=0.7)
+        for item in obs_grp:
+            self.play(FadeIn(item, shift=RIGHT * 0.1), run_time=0.5)
+            self.wait(0.1)
+
+        cq = Text(
+            "Central question: Can we formally prove that large stepsize "
+            "→ flat minima → better generalization?",
+            font_size=18, color=C_GREEN,
+        )
+        cq.to_edge(DOWN, buff=0.42)
+        cq_box = SurroundingRectangle(
+            cq, color=C_GREEN, stroke_width=1.8, buff=0.14, corner_radius=0.1
+        )
+        self.play(FadeIn(cq, shift=UP * 0.1), Create(cq_box), run_time=0.8)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  G1c – CHAOTIC DYNAMICS IN EARLY-PHASE GD  (slide 19)
+# ═══════════════════════════════════════════════════════════════════════════════
+class G1c_ChaoticDynamics(Scene):
+    def construct(self):
+        title = Text("Chaotic Dynamics in Early-Phase Gradient Descent",
+                     font_size=28, color=C_BLUE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.5, RIGHT * 5.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        # Left-side text explanations
+        points = [
+            (
+                "Gradient Flow vs. GD:",
+                "Gradient Flow (continuous) slides smoothly along the loss surface,\n"
+                "while GD with large η behaves as a chaotic dynamical system.",
+                C_BLUE,
+            ),
+            (
+                "Mechanical Impulse:",
+                "In the early phase, large stepsize generates strong impulsive forces\n"
+                "that kick the model out of sharp pits before it gets trapped.",
+                C_ORANGE,
+            ),
+            (
+                "Consequence:",
+                "The model is steered from the very beginning toward wide valleys,\n"
+                "rather than relying on late-stage filtering of solutions.",
+                C_GREEN,
+            ),
+        ]
+
+        pt_grp = VGroup()
+        for head, body, col in points:
+            head_t = Text(head, font_size=18, color=col, weight=BOLD)
+            body_t = Text(body, font_size=15, color=C_WHITE)
+            body_t.next_to(head_t, DOWN, buff=0.07, aligned_edge=LEFT)
+            pt_grp.add(VGroup(head_t, body_t))
+
+        pt_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.30)
+        pt_grp.next_to(uline, DOWN, buff=0.38)
+        pt_grp.shift(LEFT * 2.5)
+        pt_grp.scale(0.93)
+
+        for p in pt_grp:
+            self.play(FadeIn(p, shift=RIGHT * 0.1), run_time=0.65)
+            self.wait(0.12)
+
+        # Discrete dynamics box
+        disc_lbl = Text("Discrete Dynamics:", font_size=19, color=C_GOLD, weight=BOLD)
+        disc_eq = MathTex(
+            r"\theta_{t+1} - \theta_t = -\eta\,\nabla L(\theta_t)",
+            font_size=26, color=C_WHITE,
+        )
+        disc_lbl.next_to(pt_grp, DOWN, buff=0.32, aligned_edge=LEFT)
+        disc_eq.next_to(disc_lbl, RIGHT, buff=0.22)
+        disc_note = Text(
+            "(Discrete dynamical system becomes chaotic when η is large)",
+            font_size=14, color=C_GRAY,
+        )
+        disc_note.next_to(disc_lbl, DOWN, buff=0.10, aligned_edge=LEFT)
+
+        disc_box = SurroundingRectangle(
+            VGroup(disc_lbl, disc_eq), color=C_GOLD,
+            stroke_width=2, buff=0.16, corner_radius=0.12,
+        )
+        self.play(FadeIn(disc_lbl), Write(disc_eq), run_time=0.8)
+        self.play(Create(disc_box), FadeIn(disc_note), run_time=0.6)
+
+        # Right side: chaotic trajectory on multi-valley landscape
+        ax_c = Axes(
+            x_range=[0.0, 3.5, 1], y_range=[0.0, 2.4, 0.5],
+            x_length=3.8, y_length=2.8,
+            axis_config={"color": C_GRAY, "stroke_width": 1,
+                         "include_tip": True},
+        ).shift(RIGHT * 3.5 + DOWN * 0.5)
+
+        def land_fn(x):
+            return (0.30 + 0.60 * np.exp(-4 * (x - 0.65) ** 2)
+                    + 0.90 * np.exp(-6 * (x - 1.85) ** 2)
+                    + 0.28 * np.exp(-5 * (x - 2.9) ** 2)
+                    + 0.10 * x)
+
+        land_curve = ax_c.plot(
+            land_fn, x_range=[0.05, 3.3, 0.02],
+            color=C_WHITE, stroke_width=2.2
+        )
+
+        # Chaotic jumps across peaks
+        traj_x = [0.25, 1.1, 0.5, 2.3, 1.3, 2.9, 2.1, 3.1]
+        traj_pts = [ax_c.c2p(x, land_fn(x)) for x in traj_x]
+
+        traj_lines = VMobject(color=C_BLUE, stroke_width=1.8)
+        traj_lines.set_points_as_corners(traj_pts)
+
+        traj_dots = VGroup(*[
+            Dot(p, radius=0.07, color=C_BLUE) for p in traj_pts
+        ])
+        start_dot = Dot(traj_pts[0], color=C_RED, radius=0.12)
+        end_dot = Dot(traj_pts[-1], color=C_GREEN, radius=0.12)
+
+        traj_lbl = Text("Large η: chaotic trajectory\n(jumps over sharp peaks)",
+                        font_size=13, color=C_BLUE)
+        traj_lbl.next_to(ax_c, DOWN, buff=0.18)
+
+        self.play(Create(ax_c), Create(land_curve), run_time=0.8)
+        self.play(FadeIn(start_dot), run_time=0.3)
+        self.play(Create(traj_lines, rate_func=linear),
+                  FadeIn(traj_dots), run_time=1.8)
+        self.play(FadeIn(end_dot), FadeIn(traj_lbl), run_time=0.5)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -998,6 +1258,131 @@ class G8_TVConstraint(Scene):
         self.wait(0.3)
         self.play(Write(tv_eq_r), Create(tv_box_r), run_time=1.0)
         self.play(FadeIn(fence_lbl, shift=UP * 0.1), run_time=0.6)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  G8b – ROLE OF WEIGHTING FUNCTION g(x) IN DATA SUPPORT  (slides 28 & 30)
+# ═══════════════════════════════════════════════════════════════════════════════
+class G8b_WeightingFunction(Scene):
+    def construct(self):
+        title = Text("The Role of Weighting Function g(x) in Data Support",
+                     font_size=26, color=C_BLUE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.5, RIGHT * 5.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        # Left: explanations
+        items = [
+            (
+                "Meaning of g(x):",
+                "g(x) represents the probability density of the training data\n"
+                "distribution over the input domain.",
+                C_BLUE,
+            ),
+            (
+                "Boundary mechanism:",
+                "The total variation norm is bounded by 2/η, but the effective\n"
+                "regularization strength depends on g(x).",
+                C_ORANGE,
+            ),
+            (
+                "Geometric consequence:",
+                "At the center (g large): function must be extremely smooth.\n"
+                "At the boundary (g→0): function is free to fluctuate.",
+                C_GREEN,
+            ),
+        ]
+
+        item_grp = VGroup()
+        for head, body, col in items:
+            head_t = Text(head, font_size=18, color=col, weight=BOLD)
+            body_t = Text(body, font_size=15, color=C_WHITE)
+            body_t.next_to(head_t, DOWN, buff=0.07, aligned_edge=LEFT)
+            item_grp.add(VGroup(head_t, body_t))
+
+        item_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.30)
+        item_grp.next_to(uline, DOWN, buff=0.40)
+        item_grp.shift(LEFT * 2.5)
+        item_grp.scale(0.95)
+
+        for p in item_grp:
+            self.play(FadeIn(p, shift=RIGHT * 0.1), run_time=0.65)
+            self.wait(0.12)
+
+        # Key formula
+        formula_lbl = Text("Formula:", font_size=20, color=C_GOLD, weight=BOLD)
+        formula_eq = MathTex(
+            r"\int |f''(x)|\,g(x)\,dx \;\le\; \frac{2}{\eta}",
+            r"\;\Rightarrow\; f''(x)\text{ tightly constrained where }g(x)\text{ is large}",
+            font_size=22, color=C_WHITE,
+        )
+        formula_lbl.next_to(item_grp, DOWN, buff=0.35, aligned_edge=LEFT)
+        formula_eq.next_to(formula_lbl, RIGHT, buff=0.22)
+        formula_box = SurroundingRectangle(
+            VGroup(formula_lbl, formula_eq), color=C_GOLD,
+            stroke_width=2, buff=0.18, corner_radius=0.12,
+        )
+        self.play(FadeIn(formula_lbl), Write(formula_eq), run_time=0.9)
+        self.play(Create(formula_box), run_time=0.6)
+        self.wait(0.4)
+
+        # Right side: g(x) bell-curve visualization
+        ax_g = Axes(
+            x_range=[-3.0, 3.0, 1], y_range=[-0.05, 1.3, 0.5],
+            x_length=3.8, y_length=2.6,
+            axis_config={"color": C_GRAY, "stroke_width": 1,
+                         "include_tip": True},
+        ).shift(RIGHT * 3.5 + UP * 0.5)
+
+        g_curve = ax_g.plot(
+            lambda x: np.exp(-x ** 2 / 1.2),
+            x_range=[-2.8, 2.8, 0.05],
+            color=C_ORANGE, stroke_width=2.5,
+        )
+        g_lbl = MathTex(r"g(x)", font_size=22, color=C_ORANGE)
+        g_lbl.next_to(ax_g.c2p(1.5, 0.9), RIGHT, buff=0.1)
+
+        # Shade interior vs boundary
+        interior_line = DashedLine(
+            ax_g.c2p(-0.9, 0), ax_g.c2p(-0.9, 1.2),
+            color=C_GREEN, stroke_width=1.5, dash_length=0.1
+        )
+        boundary_line = DashedLine(
+            ax_g.c2p(0.9, 0), ax_g.c2p(0.9, 1.2),
+            color=C_GREEN, stroke_width=1.5, dash_length=0.1
+        )
+        int_lbl = Text("interior\n(smooth)", font_size=11, color=C_GREEN)
+        int_lbl.next_to(ax_g.c2p(0.0, 1.1), UP, buff=0.08)
+        bnd_lbl = Text("boundary\n(free)", font_size=11, color=C_RED)
+        bnd_lbl.next_to(ax_g.c2p(2.2, 0.35), RIGHT, buff=0.05)
+
+        ax_g_lbl = Text("x (input domain)", font_size=13, color=C_GRAY)
+        ax_g_lbl.next_to(ax_g.x_axis, DOWN, buff=0.22)
+
+        self.play(Create(ax_g), FadeIn(ax_g_lbl), run_time=0.7)
+        self.play(Create(g_curve), FadeIn(g_lbl), run_time=0.9)
+        self.play(
+            Create(interior_line), Create(boundary_line),
+            FadeIn(int_lbl), FadeIn(bnd_lbl),
+            run_time=0.7,
+        )
+
+        # Key insight at bottom
+        key_ins = Text(
+            "Key insight: Flatness in parameter space "
+            "↔  smoothness in function space  ↔  generalization",
+            font_size=17, color=C_GOLD,
+        )
+        key_ins.to_edge(DOWN, buff=0.38)
+        key_box = SurroundingRectangle(
+            key_ins, color=C_GOLD, stroke_width=1.8, buff=0.14, corner_radius=0.1
+        )
+        self.play(FadeIn(key_ins, shift=UP * 0.1), Create(key_box), run_time=0.8)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 

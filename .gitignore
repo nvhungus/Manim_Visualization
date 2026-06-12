@@ -1,3 +1,14 @@
+# Manim render cache (regenerate with `manim` — see README)
+media/Tex/
+media/texts/
+media/images/
+**/partial_movie_files/
+media/videos/*/480p15/
+media/videos/*/720p30/
+media/videos/*/1440p60/
+media/videos/*/2160p60/
+media/videos/test_manim/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]

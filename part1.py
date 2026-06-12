@@ -36,6 +36,74 @@ def sim_logistic_gd(eta, T=8192, n=20, seed=42):
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
+#  P0 – WHY LARGE STEPSIZE HELPS OPTIMIZATION  (slide 2)
+# ═══════════════════════════════════════════════════════════════════════════════
+class P0_WhyLargeStepsize(Scene):
+    def construct(self):
+        title = Text("Why Large Stepsize Helps Optimization",
+                     font_size=34, color=C_WHITE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 5.0, RIGHT * 5.0,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        reasons = [
+            (
+                "Escapes local minima",
+                "Large steps allow the optimizer to jump out of sharp, narrow minima\n"
+                "and explore flatter regions of the loss landscape",
+                C_BLUE,
+            ),
+            (
+                "Faster convergence",
+                "Large stepsizes accelerate progress along shallow gradient directions,\n"
+                "reducing the number of steps needed to reach a good solution",
+                C_GREEN,
+            ),
+            (
+                "Better exploration",
+                "Large stepsizes enable broader exploration of the parameter space,\n"
+                "increasing the chance of finding flatter, more generalizable minima",
+                C_GOLD,
+            ),
+        ]
+
+        cards = VGroup()
+        for head, body, col in reasons:
+            box = RoundedRectangle(
+                width=10.2, height=1.60, corner_radius=0.18,
+                color=col, fill_opacity=0.08, stroke_width=2,
+            )
+            head_t = Text(head, font_size=21, color=col, weight=BOLD)
+            head_t.next_to(box.get_left(), RIGHT, buff=0.38)
+            body_t = Text(body, font_size=16, color=C_WHITE)
+            body_t.next_to(head_t, DOWN, buff=0.07, aligned_edge=LEFT)
+            g = VGroup(box, head_t, body_t)
+            cards.add(g)
+
+        cards.arrange(DOWN, buff=0.28)
+        cards.next_to(uline, DOWN, buff=0.45)
+
+        for card in cards:
+            self.play(FadeIn(card, shift=RIGHT * 0.2), run_time=0.75)
+            self.wait(0.18)
+
+        key = Text(
+            "Key insight: Instability is not a bug — it is the mechanism for faster convergence!",
+            font_size=19, color=C_GOLD,
+        )
+        key.to_edge(DOWN, buff=0.42)
+        key_box = SurroundingRectangle(
+            key, color=C_GOLD, stroke_width=1.8, buff=0.14, corner_radius=0.1
+        )
+        self.play(FadeIn(key, shift=UP * 0.1), Create(key_box), run_time=0.8)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
 #  P1 – PART 1 OUTLINE  (slide 17)
 # ═══════════════════════════════════════════════════════════════════════════════
 class P1_Overview(Scene):
@@ -174,6 +242,82 @@ class P2_DescentLemma(Scene):
 
         self.play(Write(cond_eq), Create(cond_box), run_time=1.0)
         self.play(FadeIn(cond_note, shift=LEFT * 0.1), run_time=0.6)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  P2b – OPTIMIZATION WITH LARGE η: 3-PHASE TIMELINE  (slide 3)
+# ═══════════════════════════════════════════════════════════════════════════════
+class P2b_LargeEtaPhases(Scene):
+    def construct(self):
+        title = Text("Optimization with Large η",
+                     font_size=40, color=C_BLUE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 4.5, RIGHT * 4.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.wait(0.2)
+
+        # Horizontal dashed timeline
+        timeline = DashedLine(LEFT * 5.8, RIGHT * 5.8,
+                              color=C_GRAY, stroke_width=2.2, dash_length=0.18)
+        timeline.shift(UP * 0.9)
+        self.play(Create(timeline), run_time=0.6)
+
+        phase_specs = [
+            (
+                "Phase 1: Initial Instability",
+                "Loss spikes occur as large η\ncauses oscillations around the minimum",
+                C_RED,
+                LEFT * 4.0,
+            ),
+            (
+                "Phase 2: Sharpness Regulation",
+                "Sharpness is implicitly penalized\n— optimizer moves toward flatter regions",
+                C_ORANGE,
+                ORIGIN,
+            ),
+            (
+                "Phase 3: Accelerated Descent",
+                "Once sharpness ≤ 2/η, stable\nand faster convergence is achieved",
+                C_GREEN,
+                RIGHT * 4.0,
+            ),
+        ]
+
+        for head, body, col, pos in phase_specs:
+            dot = Dot(pos + UP * 0.9, color=col, radius=0.18)
+            dot.set_stroke(color=C_WHITE, width=2.0)
+
+            box = RoundedRectangle(
+                width=3.6, height=1.85, corner_radius=0.18,
+                color=col, fill_opacity=0.09, stroke_width=2,
+            )
+            box.move_to(pos + DOWN * 0.7)
+
+            head_t = Text(head, font_size=17, color=col, weight=BOLD)
+            head_t.next_to(box.get_top(), DOWN, buff=0.18)
+            body_t = Text(body, font_size=14, color=C_WHITE)
+            body_t.next_to(head_t, DOWN, buff=0.12)
+
+            vert = Line(pos + UP * 0.72, pos + DOWN * 0.22,
+                        color=col, stroke_width=2.0)
+
+            grp = VGroup(dot, vert, box, head_t, body_t)
+            self.play(FadeIn(grp, shift=DOWN * 0.12), run_time=0.75)
+            self.wait(0.18)
+
+        insight = Text(
+            "Large stepsize: 3-phase journey from instability to accelerated convergence",
+            font_size=19, color=C_BLUE,
+        )
+        insight.to_edge(DOWN, buff=0.42)
+        insight_box = SurroundingRectangle(
+            insight, color=C_BLUE, stroke_width=1.8, buff=0.14, corner_radius=0.1
+        )
+        self.play(FadeIn(insight, shift=UP * 0.1), Create(insight_box), run_time=0.8)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -996,78 +1140,92 @@ class P10_AdaptiveGD(Scene):
         self.play(Write(title), Create(uline), run_time=0.9)
         self.wait(0.2)
 
-        # ── Algorithm ─────────────────────────────────────────────────────────
-        alg_lbl = Text("Update rule:", font_size=22,
-                        color=C_WHITE, weight=BOLD)
-        alg_eq  = MathTex(
-            r"\theta_{t+1} \approx \theta_t - "
-            r"\frac{\eta}{L(\theta_t)}\nabla L(\theta_t)",
-            font_size=36, color=C_PURPLE,
+        # ── Algorithm (Ji & Telgarsky, ALT 2021) ──────────────────────────────
+        alg_lbl = Text("Adaptive GD (Ji & Telgarsky, ALT 2021):", font_size=21,
+                        color=C_BLUE, weight=BOLD)
+        alg_lbl.shift(LEFT * 2.8 + UP * 1.7)
+
+        alg_eq1 = MathTex(
+            r"\theta_{t+1} = \theta_t - \eta_t \nabla L(\theta_t)",
+            font_size=32, color=C_PURPLE,
         )
-        alg_lbl.shift(LEFT * 4.2 + UP * 1.7)
-        alg_eq.next_to(alg_lbl, RIGHT, buff=0.3)
+        alg_eq2 = MathTex(
+            r"\eta_t = \frac{c}{\|\nabla^2 L(\theta_t)\|}",
+            font_size=30, color=C_PURPLE,
+        )
+        alg_eq1.next_to(alg_lbl, DOWN, buff=0.25)
+        alg_eq2.next_to(alg_eq1, RIGHT, buff=0.55)
 
-        alg_note = Text("Normalises stepsize by current loss — adapts to the landscape",
-                         font_size=19, color=C_GRAY)
-        alg_note.next_to(alg_eq, DOWN, buff=0.22)
+        alg_note = Text(
+            "Stepsize adapts to local curvature — automatically stays in large-stepsize regime",
+            font_size=18, color=C_GRAY,
+        )
+        alg_note.next_to(alg_eq1, DOWN, buff=0.22, aligned_edge=LEFT)
 
-        # ── Connection to GD ───────────────────────────────────────────────────
-        phi_lbl = Text("Reparameterisation:", font_size=22,
-                        color=C_GOLD, weight=BOLD)
-        phi_eq  = MathTex(
-            r"\varphi_t = \ln\!\left(\frac{1}{L(\theta_t)}\right)"
-            r"\quad\Rightarrow\quad"
-            r"\varphi_{t+1} \approx \varphi_t + \eta\|\nabla\varphi_t\|^2",
+        # ── Key Idea bullets ───────────────────────────────────────────────────
+        key_title = Text("Key Idea: large stepsize (η_t > 2/λmax) makes adaptive GD faster:",
+                          font_size=20, color=C_GOLD, weight=BOLD)
+        key_title.next_to(alg_note, DOWN, buff=0.45, aligned_edge=LEFT)
+
+        key_items = [
+            "Exponential convergence in unstable phase",
+            "Achieves minimax optimal rate O(1/γ²)",
+            "Matches Perceptron algorithm rate — but via continuous optimization",
+        ]
+        key_grp = VGroup()
+        for item in key_items:
+            bullet = Text("•  " + item, font_size=18, color=C_WHITE)
+            key_grp.add(bullet)
+        key_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.18)
+        key_grp.next_to(key_title, DOWN, buff=0.22)
+        key_grp.shift(RIGHT * 0.3)
+
+        key_box = SurroundingRectangle(
+            VGroup(key_title, key_grp), color=C_GOLD,
+            stroke_width=2, buff=0.22, corner_radius=0.12
+        )
+
+        # ── Main theorem (ICML 2025) ───────────────────────────────────────────
+        thm_title = Text("Theorem (Zhang, Wu, Lin, Bartlett, ICML 2025):",
+                          font_size=20, color=C_GREEN, weight=BOLD)
+        thm_title.next_to(key_grp, DOWN, buff=0.48, aligned_edge=LEFT)
+
+        thm_eq = MathTex(
+            r"\text{Adaptive GD converges in } O\!\left(\frac{R^2}{\gamma^2}\right)"
+            r"\text{ iterations}",
             font_size=26, color=C_WHITE,
         )
-        phi_lbl.next_to(alg_lbl, DOWN, buff=0.9, aligned_edge=LEFT)
-        phi_eq.next_to(phi_lbl, RIGHT, buff=0.3)
+        thm_eq.next_to(thm_title, DOWN, buff=0.18)
 
-        # ── Main theorem ───────────────────────────────────────────────────────
-        thm_lbl = Text("Theorem (exponential convergence):", font_size=22,
-                        color=C_GREEN, weight=BOLD)
-        thm_eq  = MathTex(
-            r"L(\theta_t) \le e^{-\Theta(\eta t)} \cdot L(\theta_0)",
-            font_size=32, color=C_WHITE,
+        thm_sub1 = MathTex(
+            r"\text{Upper bound: } O(R^2/\gamma^2)"
+            r"\;\leftarrow\;\text{matches lower bound } \Omega(R^2/\gamma^2)",
+            font_size=20, color=C_BLUE,
         )
-        thm_lbl.next_to(phi_lbl, DOWN, buff=0.9, aligned_edge=LEFT)
-        thm_eq.next_to(thm_lbl, RIGHT, buff=0.3)
+        thm_sub2 = Text("Minimax optimal — no first-order method can do better.",
+                         font_size=18, color=C_GREEN)
+        thm_sub1.next_to(thm_eq, DOWN, buff=0.15)
+        thm_sub2.next_to(thm_sub1, DOWN, buff=0.12, aligned_edge=LEFT)
 
         thm_box = SurroundingRectangle(
-            VGroup(thm_lbl, thm_eq), color=C_GREEN,
-            stroke_width=2, buff=0.2, corner_radius=0.1
+            VGroup(thm_title, thm_eq, thm_sub1, thm_sub2),
+            color=C_GREEN, stroke_width=2, buff=0.22, corner_radius=0.12
         )
 
-        # ── Lower bound ────────────────────────────────────────────────────────
-        lb_lbl = Text("Lower bound (minimax-optimal):", font_size=22,
-                       color=C_RED, weight=BOLD)
-        lb_eq  = MathTex(
-            r"L(\theta_t) = \Omega\!\left(e^{-O(\eta t)}\right)",
-            font_size=30, color=C_WHITE,
-        )
-        lb_lbl.next_to(thm_lbl, DOWN, buff=0.85, aligned_edge=LEFT)
-        lb_eq.next_to(lb_lbl, RIGHT, buff=0.3)
-
-        match_note = MathTex(
-            r"\text{Matches Perceptron lower bound — Adaptive GD is optimal!}",
-            font_size=20, color=C_GOLD,
-        )
-        match_note.to_edge(DOWN, buff=0.55)
-
-        self.play(FadeIn(alg_lbl, shift=RIGHT * 0.15),
-                  Write(alg_eq), run_time=1.0)
+        self.play(FadeIn(alg_lbl, shift=RIGHT * 0.15), run_time=0.6)
+        self.play(Write(alg_eq1), Write(alg_eq2), run_time=1.0)
         self.play(FadeIn(alg_note), run_time=0.5)
         self.wait(0.3)
-        self.play(FadeIn(phi_lbl, shift=RIGHT * 0.15),
-                  Write(phi_eq), run_time=1.0)
+        self.play(FadeIn(key_title, shift=RIGHT * 0.15), run_time=0.6)
+        for item in key_grp:
+            self.play(FadeIn(item, shift=RIGHT * 0.1), run_time=0.45)
+            self.wait(0.08)
+        self.play(Create(key_box), run_time=0.6)
         self.wait(0.3)
-        self.play(FadeIn(thm_lbl, shift=RIGHT * 0.15),
-                  Write(thm_eq), run_time=0.9)
+        self.play(FadeIn(thm_title, shift=RIGHT * 0.15), run_time=0.5)
+        self.play(Write(thm_eq), run_time=0.9)
+        self.play(Write(thm_sub1), FadeIn(thm_sub2), run_time=0.9)
         self.play(Create(thm_box), run_time=0.6)
-        self.wait(0.3)
-        self.play(FadeIn(lb_lbl, shift=RIGHT * 0.15),
-                  Write(lb_eq), run_time=0.9)
-        self.play(FadeIn(match_note, shift=UP * 0.1), run_time=0.6)
         self.wait(2.5)
         self.play(FadeOut(*self.mobjects))
 
@@ -1211,6 +1369,183 @@ class P11_L2Reg(Scene):
             run_time=0.9,
         )
         self.play(GrowArrow(reg_arrow), FadeIn(reg_arrow_lbl), run_time=0.7)
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  P11b – STEPSIZE REGIMES: VALLEY + BASIN  (slide 10)
+# ═══════════════════════════════════════════════════════════════════════════════
+class P11b_ValleyBasinRegimes(Scene):
+    def construct(self):
+        title = Text("Valley + Basin: Stepsize Regimes",
+                     font_size=36, color=C_WHITE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 4.5, RIGHT * 4.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+        sub = Text("Visualizing Large Stepsize Dynamics",
+                   font_size=21, color=C_BLUE)
+        sub.next_to(uline, DOWN, buff=0.28)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.play(FadeIn(sub), run_time=0.5)
+        self.wait(0.2)
+
+        # ── Left: Valley (unregularized logistic) ─────────────────────────────
+        valley_box = RoundedRectangle(
+            width=4.8, height=2.6, corner_radius=0.2,
+            color=C_BLUE, fill_opacity=0.08, stroke_width=2,
+        )
+        valley_box.shift(LEFT * 3.1 + DOWN * 0.4)
+        vt = Text("Valley (Logistic Regression)", font_size=18,
+                   color=C_BLUE, weight=BOLD)
+        vt.next_to(valley_box.get_top(), DOWN, buff=0.22)
+        valley_items = [
+            "No finite minimizer",
+            "Loss landscape is a narrow valley",
+            "extending to infinity",
+            "GD oscillates across while sliding down",
+        ]
+        v_grp = VGroup(*[Text(s, font_size=15, color=C_WHITE)
+                         for s in valley_items])
+        v_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.15)
+        v_grp.next_to(vt, DOWN, buff=0.15)
+
+        # ── Right: Basin (regularized) ─────────────────────────────────────────
+        basin_box = RoundedRectangle(
+            width=4.8, height=2.6, corner_radius=0.2,
+            color=C_GREEN, fill_opacity=0.08, stroke_width=2,
+        )
+        basin_box.shift(RIGHT * 3.1 + DOWN * 0.4)
+        bt = Text("Basin (Regularized)", font_size=18,
+                   color=C_GREEN, weight=BOLD)
+        bt.next_to(basin_box.get_top(), DOWN, buff=0.22)
+        basin_items = [
+            "ℓ₂ regularization creates a basin",
+            "Finite minimizer at bottom",
+            "GD overshoots into valley walls",
+            "then returns to basin — acceleration!",
+        ]
+        b_grp = VGroup(*[Text(s, font_size=15, color=C_WHITE)
+                         for s in basin_items])
+        b_grp.arrange(DOWN, aligned_edge=LEFT, buff=0.15)
+        b_grp.next_to(bt, DOWN, buff=0.15)
+
+        self.play(
+            FadeIn(VGroup(valley_box, vt, v_grp), shift=RIGHT * 0.2),
+            FadeIn(VGroup(basin_box, bt, b_grp), shift=LEFT * 0.2),
+            run_time=0.9,
+        )
+        self.wait(0.4)
+
+        # ── 3 Stepsize regime bars ─────────────────────────────────────────────
+        reg_title = Text("Stepsize Regimes", font_size=22,
+                          color=C_WHITE, weight=BOLD)
+        reg_title.shift(DOWN * 2.05)
+        self.play(FadeIn(reg_title, shift=DOWN * 0.1), run_time=0.5)
+
+        regime_data = [
+            (r"\eta < 2/L\;:\;\text{Stable convergent (gradient flow regime)}",
+             C_GREEN),
+            (r"2/L < \eta < 4/L\;:\;\text{Unstable convergent (acceleration regime)}",
+             "#7B6914"),
+            (r"\eta > 4/L\;:\;\text{Divergent}",
+             C_RED),
+        ]
+        bars = VGroup()
+        for tex, col in regime_data:
+            bar = RoundedRectangle(
+                width=10.2, height=0.50, corner_radius=0.12,
+                color=col, fill_color=col, fill_opacity=0.70, stroke_width=0,
+            )
+            lbl = MathTex(tex, font_size=17, color=C_WHITE)
+            lbl.move_to(bar)
+            bars.add(VGroup(bar, lbl))
+
+        bars.arrange(DOWN, buff=0.08)
+        bars.next_to(reg_title, DOWN, buff=0.22)
+
+        for bar_g in bars:
+            self.play(FadeIn(bar_g, shift=RIGHT * 0.15), run_time=0.55)
+            self.wait(0.1)
+
+        key_ins = Text(
+            "Key Insight: The \"unstable convergent\" regime is where acceleration happens. "
+            "Instability is not a bug — it is the mechanism that enables faster convergence.",
+            font_size=16, color=C_GOLD,
+        )
+        key_ins.to_edge(DOWN, buff=0.28)
+        self.play(FadeIn(key_ins, shift=UP * 0.1), run_time=0.7)
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  P11c – RELATED WORK: LONG STEPS  (slide 11)
+# ═══════════════════════════════════════════════════════════════════════════════
+class P11c_RelatedWork(Scene):
+    def construct(self):
+        title = Text("Related Work: Long Steps",
+                     font_size=38, color=C_WHITE, weight=BOLD)
+        title.to_edge(UP, buff=0.42)
+        uline = Line(LEFT * 4.5, RIGHT * 4.5,
+                     color=C_BLUE, stroke_width=2).next_to(title, DOWN, buff=0.1)
+        sub = Text("Silver Stepsize Schedule & Beyond",
+                   font_size=21, color=C_BLUE)
+        sub.next_to(uline, DOWN, buff=0.28)
+
+        self.play(Write(title), Create(uline), run_time=0.9)
+        self.play(FadeIn(sub), run_time=0.5)
+        self.wait(0.2)
+
+        work_data = [
+            (
+                "Silver Stepsize Schedule",
+                "Altschuler & Parrilo, Math. Programming 2024",
+                "Alternating large/small stepsizes in a specific pattern.\n"
+                "Accelerates strongly convex quadratics without momentum.",
+                C_BLUE,
+            ),
+            (
+                "Long Steps for Smooth Convex Minimization",
+                "Grimmer, Shu, Wang, 2025",
+                "Stepsize > 1/L improves worst-case convergence.\n"
+                "Generalizes silver stepsize to non-quadratic settings.",
+                C_GREEN,
+            ),
+            (
+                "Common Theme",
+                "",
+                "Large stepsizes provably accelerate convergence\n"
+                "— instability is a resource, not a problem.",
+                C_GOLD,
+            ),
+        ]
+
+        cards = VGroup()
+        for head, ref, body, col in work_data:
+            box = RoundedRectangle(
+                width=10.5, height=1.62, corner_radius=0.18,
+                color=col, fill_opacity=0.08, stroke_width=2,
+            )
+            head_t = Text(head, font_size=21, color=col, weight=BOLD)
+            head_t.next_to(box.get_left(), RIGHT, buff=0.38)
+            body_t = Text(body, font_size=16, color=C_WHITE)
+            body_t.next_to(head_t, DOWN, buff=0.08, aligned_edge=LEFT)
+            items = [box, head_t, body_t]
+            if ref:
+                ref_t = Text(ref, font_size=15, color=C_GRAY)
+                ref_t.next_to(head_t, RIGHT, buff=0.28)
+                items.append(ref_t)
+            cards.add(VGroup(*items))
+
+        cards.arrange(DOWN, buff=0.30)
+        cards.next_to(sub, DOWN, buff=0.45)
+
+        for card in cards:
+            self.play(FadeIn(card, shift=RIGHT * 0.2), run_time=0.75)
+            self.wait(0.18)
+
+        self.wait(2.5)
+        self.play(FadeOut(*self.mobjects))
 
 
 # ═══════════════════════════════════════════════════════════════════════════════
